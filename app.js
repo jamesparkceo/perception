@@ -147,3 +147,32 @@ wss.on('connection', function connection(ws, req) {
         }
     });
 });
+const { verifyToken } = require('./auth');
+
+wss.on('connection', function connection(ws, req) {
+    const token = req.headers['sec-websocket-protocol'];
+
+    if (!verifyToken(token)) {
+        ws.close(4001, 'Unauthorized');
+        return;
+    }
+
+    ws.on('message', function incoming(message) {
+        if (message instanceof Buffer) {
+            processVoiceCommand(message, ws).catch(error => {
+                console.error('Error processing voice command:', error);
+                ws.send('Error processing your voice command.');
+            });
+        } else {
+            console.log('received: %s', message);
+        }
+    });
+
+    ws.on('close', function close() {
+        console.log('Client disconnected');
+    });
+
+    ws.on('error', function error(err) {
+        console.error('WebSocket error:', err);
+    });
+});
