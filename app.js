@@ -17,6 +17,8 @@ wss.on('connection', function connection(ws) {
 ws.on('connection', function connection(ws, req) {
 const { manageGPT4Session, spinUpGPT3_5Instance } = require('./voice');
 
+const { processVoiceCommand } = require('./voice');
+
 wss.on('connection', function connection(ws, req) {
   const params = new URLSearchParams(req.url.split('?')[1]);
   const token = params.get('token');
@@ -41,6 +43,15 @@ wss.on('connection', function connection(ws, req) {
   }).catch(err => {
       console.error('Error managing GPT-4 session:', err);
       ws.close(1011, 'Session error');
+  });
+
+  ws.on('message', function incoming(message) {
+      if (message instanceof Buffer) { // Assuming binary data is audio
+          processVoiceCommand(message, ws);
+      } else {
+          // Handle text messages as before
+          console.log('received: %s', message);
+      }
   });
 
   ws.on('message', function incoming(message) {
