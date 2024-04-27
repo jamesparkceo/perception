@@ -162,6 +162,7 @@ const keepSessionAlive = true; // Flag to keep the session alive indefinitely
 const manageGPT4Session = async () => {
     // Check and renew the session if it's close to expiration or does not exist
     if (!gpt4SessionId || isSessionCloseToExpiry(gpt4SessionId, keepSessionAlive)) {
+    if (!gpt4SessionId || isSessionCloseToExpiry(gpt4SessionId, keepSessionAlive)) {
         try {
             const sessionResponse = await openai.createSession({
                 model: "gpt-4-turbo",
