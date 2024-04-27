@@ -15,6 +15,13 @@ const openai = new OpenAIApi(configuration);
 const wss = new WebSocket.Server({ server })
 
 wss.on('connection', function connection(ws) {
+wss.on('connection', function connection(ws, req) {
+  const token = req.url.split('?token=')[1];
+  if (token !== process.env.AUTH_TOKEN) {
+    ws.close(1008, 'Unauthorized');
+    return;
+  }
+
   ws.on('message', function incoming(message) {
     console.log('received: %s', message);
     // Handling specific tags for actions
