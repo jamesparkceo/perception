@@ -42,24 +42,45 @@ const transcribeAudio = async (audioBuffer) => {
 };
 
 module.exports = { handleVoiceCommand, transcribeAudio };
-const openai = require('openai');
+const { Configuration, OpenAIApi } = require("openai");
 
-const interactWithGPT4 = async (text) => {
-    const response = await openai.createCompletion({
-        model: "text-davinci-002", // Update this to GPT-4 Turbo when available
-        prompt: text,
-        maxTokens: 150,
-        stop: ["\n"],
-    });
-    return response.data.choices[0].text.trim();
+const configuration = new Configuration({
+    apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
+
+const interactWithGPT4 = async (text, sessionConfig) => {
+    try {
+        const response = await openai.createCompletion({
+            model: "gpt-4-turbo",
+            prompt: text,
+            maxTokens: 150,
+            stop: ["\n"],
+            temperature: 0.7,
+            presencePenalty: 0.6,
+            frequencyPenalty: 0.5,
+            ...sessionConfig,
+        });
+        return response.data.choices[0].text.trim();
+    } catch (error) {
+        console.error('Error interacting with GPT-4:', error);
+        throw error;
+    }
+};
 };
 
 module.exports = { handleVoiceCommand, transcribeAudio, interactWithGPT4 };
-// Placeholder for Azure Cognitive Services integration
-// This will be implemented once the custom voice model is ready
+const { SpeechConfig, AudioConfig, SpeechSynthesizer } = require("microsoft-cognitiveservices-speech-sdk");
+
 const synthesizeSpeech = async (text) => {
-    // Implementation for Azure TTS will go here
-    return "This function will synthesize speech using Azure Cognitive Services.";
+    const speechConfig = SpeechConfig.fromSubscription(process.env.AZURE_SPEECH_KEY, process.env.AZURE_SERVICE_REGION);
+    speechConfig.speechSynthesisVoiceName = "en-US-JennyNeural";
+    const audioConfig = AudioConfig.fromAudioFileOutput("path/to/audio.wav");
+    const synthesizer = new SpeechSynthesizer(speechConfig, audioConfig);
+    const result = await synthesizer.speakTextAsync(text);
+    synthesizer.close();
+    return result.audioData;
+};
 };
 
 module.exports = { handleVoiceCommand, transcribeAudio, interactWithGPT4, synthesizeSpeech };
