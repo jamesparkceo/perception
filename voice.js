@@ -1,5 +1,6 @@
 // Manages voice command processing and responses
 const { Configuration, OpenAIApi } = require("openai");
+const { manageGPT4Session } = require('./sessionManager');
 
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
@@ -43,6 +44,7 @@ const transcribeAudio = async (audioBuffer) => {
 
 module.exports = { handleVoiceCommand, transcribeAudio };
 const { Configuration, OpenAIApi } = require("openai");
+const { manageGPT4Session } = require('./sessionManager');
 
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
