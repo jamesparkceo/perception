@@ -174,9 +174,11 @@ const manageGPT4Session = async () => {
     return gpt4SessionId;
 };
 
-const isSessionCloseToExpiry = (sessionId) => {
+const isSessionCloseToExpiry = (sessionId, keepAlive = false) => {
     // Placeholder for session expiry check logic
-    return false; // Implement actual expiry check based on session creation time and max duration
+    if (keepAlive) return true;
+    // Implement actual expiry check based on session creation time and max duration
+    return false;
 };
 
 
