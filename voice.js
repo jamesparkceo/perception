@@ -159,12 +159,17 @@ const openaiGPT3_5 = new OpenAIApi({
 let gpt4SessionId = null; // Store GPT-4 session ID for persistence
 
 const manageGPT4Session = async () => {
-    // Renew the session if it's close to expiration
+    // Check and renew the session if it's close to expiration or does not exist
     if (!gpt4SessionId || isSessionCloseToExpiry(gpt4SessionId)) {
-        const sessionResponse = await openai.createSession({
-            model: "gpt-4-turbo",
-        });
-        gpt4SessionId = sessionResponse.data.id;
+        try {
+            const sessionResponse = await openai.createSession({
+                model: "gpt-4-turbo",
+            });
+            gpt4SessionId = sessionResponse.data.id;
+        } catch (error) {
+            console.error('Failed to renew GPT-4 session:', error);
+            throw new Error('Session renewal failed');
+        }
     }
     return gpt4SessionId;
 };
@@ -186,12 +191,13 @@ const spinUpGPT3_5Instance = async (task) => {
 const processVoiceCommand = async (audioBuffer, ws) => {
     try {
         const transcription = await transcribeAudio(audioBuffer);
-        const gptResponse = await interactWithGPT4(transcription, {session: await manageGPT4Session()});
+        const session = await manageGPT4Session();
+        const gptResponse = await interactWithGPT4(transcription, {session: session});
         const audioResponse = await synthesizeSpeech(gptResponse);
-        ws.send(audioResponse); // Assuming WebSocket can handle binary data, or convert to suitable format
+        ws.send(audioResponse); // Send synthesized speech as a response
     } catch (error) {
         console.error('Error processing voice command:', error);
-        ws.send('Error processing your voice command.');
+        ws.send('Error processing your voice command. Please try again.');
     }
 };
 
@@ -199,12 +205,13 @@ module.exports = { handleVoiceCommand, transcribeAudio, interactWithGPT4, synthe
 const processVoiceCommand = async (audioBuffer, ws) => {
     try {
         const transcription = await transcribeAudio(audioBuffer);
-        const gptResponse = await interactWithGPT4(transcription, {session: await manageGPT4Session()});
+        const session = await manageGPT4Session();
+        const gptResponse = await interactWithGPT4(transcription, {session: session});
         const audioResponse = await synthesizeSpeech(gptResponse);
-        ws.send(audioResponse); // Assuming WebSocket can handle binary data, or convert to suitable format
+        ws.send(audioResponse); // Send synthesized speech as a response
     } catch (error) {
         console.error('Error processing voice command:', error);
-        ws.send('Error processing your voice command.');
+        ws.send('Error processing your voice command. Please try again.');
     }
 };
 
