@@ -30,7 +30,12 @@ wss.on('connection', function connection(ws, req) {
   }
 
   manageGPT4Session().then(sessionId => {
-      ws.on('message', function incoming(message) {
+  const { storeChatMessage, retrieveChatMessages, storeContext, retrieveContext } = require('./db');
+
+wss.on('connection', function connection(ws, req) {
+    const sessionId = req.headers['sec-websocket-key']; // Unique identifier for each WebSocket connection
+
+    ws.on('message', function incoming(message) {
           if (message.startsWith('task:')) {
               spinUpGPT3_5Instance(message.slice(5)).then(response => {
                   ws.send(`GPT-3.5 response: ${response}`);
@@ -139,6 +144,11 @@ app.listen(port, () => {
 const { processVoiceCommand } = require('./voice');
 
 wss.on('connection', function connection(ws, req) {
+const { storeChatMessage, retrieveChatMessages, storeContext, retrieveContext } = require('./db');
+
+wss.on('connection', function connection(ws, req) {
+    const sessionId = req.headers['sec-websocket-key']; // Unique identifier for each WebSocket connection
+
     ws.on('message', function incoming(message) {
         if (message instanceof Buffer) { // Assuming binary data is audio
             processVoiceCommand(message, ws);
@@ -157,7 +167,14 @@ wss.on('connection', function connection(ws, req) {
         return;
     }
 
+const { storeChatMessage, retrieveChatMessages, storeContext, retrieveContext } = require('./db');
+
+wss.on('connection', function connection(ws, req) {
+    const sessionId = req.headers['sec-websocket-key']; // Unique identifier for each WebSocket connection
+
     ws.on('message', function incoming(message) {
+        storeChatMessage(sessionId, message).catch(err => console.error('Error storing chat message:', err));
+
         if (message instanceof Buffer) {
             processVoiceCommand(message, ws).catch(error => {
                 console.error('Error processing voice command:', error);
@@ -165,6 +182,12 @@ wss.on('connection', function connection(ws, req) {
             });
         } else {
             console.log('received: %s', message);
+            retrieveContext(sessionId).then(context => {
+                // Use context for processing message or updating it
+                // Example: Update context with new message
+                const updatedContext = `${context || ''}\n${message}`;
+                storeContext(sessionId, updatedContext).catch(err => console.error('Error updating context:', err));
+            }).catch(err => console.error('Error retrieving context:', err));
         }
     });
 
