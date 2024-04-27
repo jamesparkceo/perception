@@ -157,10 +157,11 @@ const openaiGPT3_5 = new OpenAIApi({
 });
 
 let gpt4SessionId = null; // Store GPT-4 session ID for persistence
+const keepSessionAlive = true; // Flag to keep the session alive indefinitely
 
 const manageGPT4Session = async () => {
     // Check and renew the session if it's close to expiration or does not exist
-    if (!gpt4SessionId || isSessionCloseToExpiry(gpt4SessionId)) {
+    if (!gpt4SessionId || isSessionCloseToExpiry(gpt4SessionId, keepSessionAlive)) {
         try {
             const sessionResponse = await openai.createSession({
                 model: "gpt-4-turbo",
