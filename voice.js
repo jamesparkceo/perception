@@ -164,6 +164,7 @@ const manageGPT4Session = async () => {
     if (!gpt4SessionId || isSessionCloseToExpiry(gpt4SessionId, keepSessionAlive)) {
     if (!gpt4SessionId || isSessionCloseToExpiry(gpt4SessionId, keepSessionAlive)) {
     if (!gpt4SessionId || isSessionCloseToExpiry(gpt4SessionId, keepSessionAlive)) {
+    if (!gpt4SessionId || isSessionCloseToExpiry(gpt4SessionId, keepSessionAlive)) {
         try {
             const sessionResponse = await openai.createSession({
                 model: "gpt-4-turbo",
