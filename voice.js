@@ -1,6 +1,9 @@
 // Manages voice command processing and responses
 const { Configuration, OpenAIApi } = require("openai");
 const { manageGPT4Session } = require('./sessionManager');
+import { Configuration, OpenAIApi, Audio } from "openai";
+import { manageGPT4Session, manageCodingSessions } from './sessionManager';
+import { customVocalSynthesis } from './customVocal';
 
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
@@ -24,12 +27,13 @@ module.exports = { handleVoiceCommand };
 const speech = require('@google-cloud/speech');
 const speechClient = new speech.SpeechClient();
 
-const transcribeAudio = async (audioBuffer) => {
+const transcribeAudio = async (audioBuffer, useCustomModel = false) => {
     const audio = { content: audioBuffer.toString('base64') };
     const config = {
         encoding: 'LINEAR16',
         sampleRateHertz: 16000,
         languageCode: 'en-US',
+        model: useCustomModel ? 'custom-vocal-model' : 'default',
     };
     const request = {
         audio: audio,
@@ -42,9 +46,23 @@ const transcribeAudio = async (audioBuffer) => {
     return transcription;
 };
 
+const synthesizeSpeech = async (text, useCustomVoice = false) => {
+    const voiceConfig = useCustomVoice ? customVocalSynthesis(text) : {
+        voice: 'en-US-JennyNeural',
+    };
+    const audioConfig = AudioConfig.fromAudioFileOutput("path/to/audio.wav");
+    const synthesizer = new SpeechSynthesizer(voiceConfig, audioConfig);
+    const result = await synthesizer.speakTextAsync(text);
+    synthesizer.close();
+    return result.audioData;
+};
+
 module.exports = { handleVoiceCommand, transcribeAudio };
 const { Configuration, OpenAIApi } = require("openai");
 const { manageGPT4Session } = require('./sessionManager');
+import { Configuration, OpenAIApi, Audio } from "openai";
+import { manageGPT4Session, manageCodingSessions } from './sessionManager';
+import { customVocalSynthesis } from './customVocal';
 
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
