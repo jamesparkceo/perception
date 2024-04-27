@@ -5,19 +5,21 @@ const port = process.env.PORT || 3000
 
 const server = require('http').createServer(app)
 const WebSocket = require('ws')
-const { Configuration, OpenAIApi } = require("openai");
-
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
+const { handleVoiceCommand } = require('./voice');
+const { executeAction } = require('./actions');
+const { verifyToken, verifyRole } = require('./auth');
+const config = require('./config');
+const { logError } = require('./helpers');
 
 const wss = new WebSocket.Server({ server })
 
 wss.on('connection', function connection(ws) {
-wss.on('connection', function connection(ws, req) {
-  const token = req.url.split('?token=')[1];
-  if (token !== process.env.AUTH_TOKEN) {
+ws.on('connection', function connection(ws, req) {
+  const params = new URLSearchParams(req.url.split('?')[1]);
+  const token = params.get('token');
+  const role = params.get('role'); // Assuming role is passed as a query parameter
+
+  if (!verifyToken(token)) {
     ws.close(1008, 'Unauthorized');
     return;
   }
@@ -25,40 +27,12 @@ wss.on('connection', function connection(ws, req) {
   ws.on('message', function incoming(message) {
     console.log('received: %s', message);
     // Handling specific tags for actions
-    const tagActionMatch = message.match(/\[(\d+)\]/);
-    if (tagActionMatch) {
-      const actionCode = parseInt(tagActionMatch[1], 10);
-      switch (actionCode) {
-        case 20:
-          // Example action: git commit
-          const commitMessage = 'Automated commit from chat';
-          require('child_process').exec(`git commit -am "${commitMessage}"`, (error, stdout, stderr) => {
-            if (error) {
-              console.error(`exec error: ${error}`);
-              return;
-            }
-            console.log(`stdout: ${stdout}`);
-            console.error(`stderr: ${stderr}`);
-          });
-          break;
-        default:
-          console.log('No action defined for this code');
-      }
+    if (message.match(/\[(\d+)\]/)) {
+      executeAction(parseInt(message.match(/\[(\d+)\]/)[1], ws);
     }
     // Example of handling a voice command
-    if (message.startsWith('voice:')) {
-      const voiceCommand = message.slice(6);
-      openai.createCompletion("text-davinci-002", {
-        prompt: voiceCommand,
-        maxTokens: 150,
-      }).then(response => {
-        const reply = response.data.choices[0].text.trim();
-        ws.send(`AI says: ${reply}`);
-      }).catch(error => {
-        console.error('Error from OpenAI:', error);
-        ws.send('Error processing your voice command.');
-      });
-    }
+    if (message.startsWith('voice:'))
+      handleVoiceCommand(message.slice(6), ws);
     wss.clients.forEach(function each(client) {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(message);
@@ -108,19 +82,8 @@ wss.on('connection', function connection(ws, req) {
       }
     }
     // Example of handling a voice command
-    if (message.startsWith('voice:')) {
-      const voiceCommand = message.slice(6);
-      openai.createCompletion("text-davinci-002", {
-        prompt: voiceCommand,
-        maxTokens: 150,
-      }).then(response => {
-        const reply = response.data.choices[0].text.trim();
-        ws.send(`AI says: ${reply}`);
-      }).catch(error => {
-        console.error('Error from OpenAI:', error);
-        ws.send('Error processing your voice command.');
-      });
-    }
+    if (message.startsWith('voice:'))
+      handleVoiceCommand(message.slice(6), ws);
     wss.clients.forEach(function each(client) {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(message);
@@ -136,8 +99,8 @@ app.get('/', (req, res) => {
   })
 })
 
-server.listen(port, () => {
-  console.log(`App is listening on port ${port}`)
+server.listen(config.port, () => {
+  console.log(`App is listening on port ${config.port}`)
 })
 
 app.listen(port, () => {
