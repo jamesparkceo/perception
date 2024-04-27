@@ -95,7 +95,8 @@ const openaiGPT3_5 = new OpenAIApi({
 let gpt4SessionId = null; // Store GPT-4 session ID for persistence
 
 const manageGPT4Session = async () => {
-    if (!gpt4SessionId) {
+    // Renew the session if it's close to expiration
+    if (!gpt4SessionId || isSessionCloseToExpiry(gpt4SessionId)) {
         const sessionResponse = await openai.createSession({
             model: "gpt-4-turbo",
         });
@@ -103,6 +104,12 @@ const manageGPT4Session = async () => {
     }
     return gpt4SessionId;
 };
+
+const isSessionCloseToExpiry = (sessionId) => {
+    // Placeholder for session expiry check logic
+    return false; // Implement actual expiry check based on session creation time and max duration
+};
+
 
 const spinUpGPT3_5Instance = async (task) => {
     const response = await openaiGPT3_5.createCompletion({
