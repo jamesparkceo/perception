@@ -123,3 +123,16 @@ const processVoiceCommand = async (audioBuffer, ws) => {
 };
 
 module.exports = { handleVoiceCommand, transcribeAudio, interactWithGPT4, synthesizeSpeech, processVoiceCommand };
+const processVoiceCommand = async (audioBuffer, ws) => {
+    try {
+        const transcription = await transcribeAudio(audioBuffer);
+        const gptResponse = await interactWithGPT4(transcription, {session: await manageGPT4Session()});
+        const audioResponse = await synthesizeSpeech(gptResponse);
+        ws.send(audioResponse); // Assuming WebSocket can handle binary data, or convert to suitable format
+    } catch (error) {
+        console.error('Error processing voice command:', error);
+        ws.send('Error processing your voice command.');
+    }
+};
+
+module.exports = { handleVoiceCommand, transcribeAudio, interactWithGPT4, synthesizeSpeech, processVoiceCommand };

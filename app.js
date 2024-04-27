@@ -136,3 +136,14 @@ server.listen(config.port, () => {
 app.listen(port, () => {
   console.log(`App is listening on port ${port}`)
 })
+const { processVoiceCommand } = require('./voice');
+
+wss.on('connection', function connection(ws, req) {
+    ws.on('message', function incoming(message) {
+        if (message instanceof Buffer) { // Assuming binary data is audio
+            processVoiceCommand(message, ws);
+        } else {
+            console.log('received: %s', message);
+        }
+    });
+});
