@@ -67,6 +67,68 @@ wss.on('connection', function connection(ws, req) {
   });
   ws.send('Welcome to the chat!');
 });
+const wss = new WebSocket.Server({ server })
+
+wss.on('connection', function connection(ws, req) {
+  const params = new URLSearchParams(req.url.split('?')[1]);
+  const token = params.get('token');
+  const role = params.get('role'); // Assuming role is passed as a query parameter
+
+  if (token !== process.env.AUTH_TOKEN) {
+    ws.close(1008, 'Unauthorized');
+    return;
+  }
+
+  ws.on('message', function incoming(message) {
+    console.log('received: %s', message);
+    // Handling specific tags for actions
+    const tagActionMatch = message.match(/\[(\d+)\]/);
+    if (tagActionMatch) {
+      const actionCode = parseInt(tagActionMatch[1], 10);
+      // Check role before executing action
+      if (role !== 'admin') {
+        ws.send('Unauthorized action.');
+        return;
+      }
+      switch (actionCode) {
+        case 20:
+          // Example action: git commit
+          const commitMessage = 'Automated commit from chat';
+          require('child_process').exec(`git commit -am "${commitMessage}"`, (error, stdout, stderr) => {
+            if (error) {
+              console.error(`exec error: ${error}`);
+              return;
+            }
+            console.log(`stdout: ${stdout}`);
+            console.error(`stderr: ${stderr}`);
+          });
+          break;
+        default:
+          console.log('No action defined for this code');
+      }
+    }
+    // Example of handling a voice command
+    if (message.startsWith('voice:')) {
+      const voiceCommand = message.slice(6);
+      openai.createCompletion("text-davinci-002", {
+        prompt: voiceCommand,
+        maxTokens: 150,
+      }).then(response => {
+        const reply = response.data.choices[0].text.trim();
+        ws.send(`AI says: ${reply}`);
+      }).catch(error => {
+        console.error('Error from OpenAI:', error);
+        ws.send('Error processing your voice command.');
+      });
+    }
+    wss.clients.forEach(function each(client) {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  });
+  ws.send('Welcome to the chat!');
+});
 
 app.get('/', (req, res) => {
   res.json({
