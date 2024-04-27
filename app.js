@@ -20,6 +20,9 @@ const { manageGPT4Session, spinUpGPT3_5Instance } = require('./voice');
 const { processVoiceCommand } = require('./voice');
 
 wss.on('connection', function connection(ws, req) {
+    const { logInfo, logError } = require('./helpers');
+    const { manageGPT4Session, interactWithGPT4, spinUpGPT3_5Instance } = require('./voice');
+
   const params = new URLSearchParams(req.url.split('?')[1]);
   const token = params.get('token');
   const role = params.get('role'); // Assuming role is passed as a query parameter
@@ -33,6 +36,9 @@ wss.on('connection', function connection(ws, req) {
   const { storeChatMessage, retrieveChatMessages, storeContext, retrieveContext } = require('./db');
 
 wss.on('connection', function connection(ws, req) {
+    const { logInfo, logError } = require('./helpers');
+    const { manageGPT4Session, interactWithGPT4, spinUpGPT3_5Instance } = require('./voice');
+
     const sessionId = req.headers['sec-websocket-key']; // Unique identifier for each WebSocket connection
 
     ws.on('message', function incoming(message) {
@@ -55,7 +61,36 @@ wss.on('connection', function connection(ws, req) {
           processVoiceCommand(message, ws);
       } else {
           // Handle text messages as before
-          console.log('received: %s', message);
+          if (message.startsWith('log:')) {
+            logInfo('Fetching logs...');
+            // Fetch and send logs (implementation depends on logging setup)
+            ws.send('Logs: [Here are the logs]');
+        } else if (message.startsWith('checkAI:')) {
+            // Check AI tasks
+            ws.send('AI Status: [AI is currently processing tasks]');
+        } else if (message.startsWith('messageAI:')) {
+            const aiName = message.split(':')[1];
+            const aiMessage = message.split(':')[2];
+            if (aiName === 'CEO') {
+                interactWithGPT4(aiMessage, {session: manageGPT4Session()}).then(response => {
+                    ws.send(`Message to CEO GPT-4: ${response}`);
+                }).catch(err => {
+                    logError('Error sending message to CEO GPT-4:', err);
+                    ws.send('Error processing your message to CEO GPT-4.');
+                });
+            } else {
+                // Handle other AI instances
+                spinUpGPT3_5Instance(aiMessage).then(response => {
+                    ws.send(`Response from GPT-3.5: ${response}`);
+                }).catch(err => {
+                    logError('Error with GPT-3.5 instance:', err);
+                    ws.send('Error processing your task.');
+                });
+            }
+        } else {
+            console.log('received: %s', message);
+            // Existing message handling
+        }
       }
   });
 
@@ -79,6 +114,9 @@ wss.on('connection', function connection(ws, req) {
 const wss = new WebSocket.Server({ server })
 
 wss.on('connection', function connection(ws, req) {
+    const { logInfo, logError } = require('./helpers');
+    const { manageGPT4Session, interactWithGPT4, spinUpGPT3_5Instance } = require('./voice');
+
   const params = new URLSearchParams(req.url.split('?')[1]);
   const token = params.get('token');
   const role = params.get('role'); // Assuming role is passed as a query parameter
@@ -144,22 +182,60 @@ app.listen(port, () => {
 const { processVoiceCommand } = require('./voice');
 
 wss.on('connection', function connection(ws, req) {
+    const { logInfo, logError } = require('./helpers');
+    const { manageGPT4Session, interactWithGPT4, spinUpGPT3_5Instance } = require('./voice');
+
 const { storeChatMessage, retrieveChatMessages, storeContext, retrieveContext } = require('./db');
 
 wss.on('connection', function connection(ws, req) {
+    const { logInfo, logError } = require('./helpers');
+    const { manageGPT4Session, interactWithGPT4, spinUpGPT3_5Instance } = require('./voice');
+
     const sessionId = req.headers['sec-websocket-key']; // Unique identifier for each WebSocket connection
 
     ws.on('message', function incoming(message) {
         if (message instanceof Buffer) { // Assuming binary data is audio
             processVoiceCommand(message, ws);
         } else {
+            if (message.startsWith('log:')) {
+            logInfo('Fetching logs...');
+            // Fetch and send logs (implementation depends on logging setup)
+            ws.send('Logs: [Here are the logs]');
+        } else if (message.startsWith('checkAI:')) {
+            // Check AI tasks
+            ws.send('AI Status: [AI is currently processing tasks]');
+        } else if (message.startsWith('messageAI:')) {
+            const aiName = message.split(':')[1];
+            const aiMessage = message.split(':')[2];
+            if (aiName === 'CEO') {
+                interactWithGPT4(aiMessage, {session: manageGPT4Session()}).then(response => {
+                    ws.send(`Message to CEO GPT-4: ${response}`);
+                }).catch(err => {
+                    logError('Error sending message to CEO GPT-4:', err);
+                    ws.send('Error processing your message to CEO GPT-4.');
+                });
+            } else {
+                // Handle other AI instances
+                spinUpGPT3_5Instance(aiMessage).then(response => {
+                    ws.send(`Response from GPT-3.5: ${response}`);
+                }).catch(err => {
+                    logError('Error with GPT-3.5 instance:', err);
+                    ws.send('Error processing your task.');
+                });
+            }
+        } else {
             console.log('received: %s', message);
+            // Existing message handling
+        }
         }
     });
 });
 const { verifyToken } = require('./auth');
 
 wss.on('connection', function connection(ws, req) {
+    const { logInfo, logError } = require('./helpers');
+    const { manageGPT4Session, interactWithGPT4, spinUpGPT3_5Instance } = require('./voice');
+
     const token = req.headers['sec-websocket-protocol'];
 
     if (!verifyToken(token)) {
@@ -170,6 +246,9 @@ wss.on('connection', function connection(ws, req) {
 const { storeChatMessage, retrieveChatMessages, storeContext, retrieveContext } = require('./db');
 
 wss.on('connection', function connection(ws, req) {
+    const { logInfo, logError } = require('./helpers');
+    const { manageGPT4Session, interactWithGPT4, spinUpGPT3_5Instance } = require('./voice');
+
     const sessionId = req.headers['sec-websocket-key']; // Unique identifier for each WebSocket connection
 
     ws.on('message', function incoming(message) {
@@ -181,7 +260,36 @@ wss.on('connection', function connection(ws, req) {
                 ws.send('Error processing your voice command.');
             });
         } else {
+            if (message.startsWith('log:')) {
+            logInfo('Fetching logs...');
+            // Fetch and send logs (implementation depends on logging setup)
+            ws.send('Logs: [Here are the logs]');
+        } else if (message.startsWith('checkAI:')) {
+            // Check AI tasks
+            ws.send('AI Status: [AI is currently processing tasks]');
+        } else if (message.startsWith('messageAI:')) {
+            const aiName = message.split(':')[1];
+            const aiMessage = message.split(':')[2];
+            if (aiName === 'CEO') {
+                interactWithGPT4(aiMessage, {session: manageGPT4Session()}).then(response => {
+                    ws.send(`Message to CEO GPT-4: ${response}`);
+                }).catch(err => {
+                    logError('Error sending message to CEO GPT-4:', err);
+                    ws.send('Error processing your message to CEO GPT-4.');
+                });
+            } else {
+                // Handle other AI instances
+                spinUpGPT3_5Instance(aiMessage).then(response => {
+                    ws.send(`Response from GPT-3.5: ${response}`);
+                }).catch(err => {
+                    logError('Error with GPT-3.5 instance:', err);
+                    ws.send('Error processing your task.');
+                });
+            }
+        } else {
             console.log('received: %s', message);
+            // Existing message handling
+        }
             retrieveContext(sessionId).then(context => {
                 // Use context for processing message or updating it
                 // Example: Update context with new message
