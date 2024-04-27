@@ -85,3 +85,28 @@ const synthesizeSpeech = async (text) => {
 
 module.exports = { handleVoiceCommand, transcribeAudio, interactWithGPT4, synthesizeSpeech };
 module.exports = { handleVoiceCommand, transcribeAudio, interactWithGPT4, synthesizeSpeech };
+const openaiGPT3_5 = new OpenAIApi({
+    apiKey: process.env.OPENAI_API_KEY,
+    model: "gpt-3.5-turbo"
+});
+
+let gpt4SessionId = null; // Store GPT-4 session ID for persistence
+
+const manageGPT4Session = async () => {
+    if (!gpt4SessionId) {
+        const sessionResponse = await openai.createSession({
+            model: "gpt-4-turbo",
+        });
+        gpt4SessionId = sessionResponse.data.id;
+    }
+    return gpt4SessionId;
+};
+
+const spinUpGPT3_5Instance = async (task) => {
+    const response = await openaiGPT3_5.createCompletion({
+        prompt: task,
+        maxTokens: 150,
+        stop: ["\n"],
+    });
+    return response.data.choices[0].text.trim();
+};

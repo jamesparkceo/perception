@@ -15,6 +15,9 @@ const wss = new WebSocket.Server({ server })
 
 wss.on('connection', function connection(ws) {
 ws.on('connection', function connection(ws, req) {
+const { manageGPT4Session, spinUpGPT3_5Instance } = require('./voice');
+
+wss.on('connection', function connection(ws, req) {
   const params = new URLSearchParams(req.url.split('?')[1]);
   const token = params.get('token');
   const role = params.get('role'); // Assuming role is passed as a query parameter
@@ -23,6 +26,22 @@ ws.on('connection', function connection(ws, req) {
     ws.close(1008, 'Unauthorized');
     return;
   }
+
+  manageGPT4Session().then(sessionId => {
+      ws.on('message', function incoming(message) {
+          if (message.startsWith('task:')) {
+              spinUpGPT3_5Instance(message.slice(5)).then(response => {
+                  ws.send(`GPT-3.5 response: ${response}`);
+              }).catch(err => {
+                  console.error('Error with GPT-3.5 instance:', err);
+                  ws.send('Error processing your task.');
+              });
+          }
+      });
+  }).catch(err => {
+      console.error('Error managing GPT-4 session:', err);
+      ws.close(1011, 'Session error');
+  });
 
   ws.on('message', function incoming(message) {
     console.log('received: %s', message);
