@@ -1,1 +1,17 @@
-// Directory for storing test files
+const { connectToDatabase } = require('../db');
+const { verifyToken } = require('../auth');
+
+describe('Database Connection', () => {
+    test('should connect without error', async () => {
+        const db = await connectToDatabase();
+        expect(db).toBeTruthy();
+    });
+});
+
+describe('Authentication', () => {
+    test('should validate token correctly', () => {
+        const validToken = process.env.AUTH_TOKEN;
+        const result = verifyToken(validToken);
+        expect(result).toBe(true);
+    });
+});

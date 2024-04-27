@@ -26,6 +26,10 @@ This example application is designed to show how a Node Express application can 
 ## Getting Started
 
 Follow the steps below to deploy and run the Node Express application on your Koyeb account.
+### Database Setup
+
+Ensure you have MongoDB set up and provide the connection URI in your environment variables as `MONGO_URI`.
+
 
 ### Requirements
 
@@ -60,6 +64,10 @@ You will be taken to the deployment page where you can follow the build of your 
 ## Contributing
 
 If you have any questions, ideas or suggestions regarding this application sample, feel free to open an [issue](//github.com/koyeb/example-expressjs/issues) or fork this repository and open a [pull request](//github.com/koyeb/example-expressjs/pulls).
+
+## Testing
+
+To run the tests, ensure you have Jest installed and run `npm test` from the root directory. This will execute the tests defined in the `tests/` directory.
 
 ## Contact
 
