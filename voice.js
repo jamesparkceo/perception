@@ -4,12 +4,16 @@ const { manageGPT4Session } = require('./sessionManager');
 import { Configuration, OpenAIApi, Audio } from "openai";
 import { manageGPT4Session, manageCodingSessions } from './sessionManager';
 import { customVocalSynthesis } from './customVocal';
+import { Configuration, OpenAIApi, Audio } from "openai";
+import { manageGPT4Session, manageCodingSessions } from './sessionManager';
+import { customVocalSynthesis } from './customVocal';
 
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 
+const transcribeAudio = async (audioBuffer, useCustomModel = false) => {
 const handleVoiceCommand = (voiceCommand, ws) => {
     openai.createCompletion("text-davinci-002", {
         prompt: voiceCommand,
@@ -31,6 +35,9 @@ const transcribeAudio = async (audioBuffer, useCustomModel = false) => {
 import { Configuration, OpenAIApi, Audio } from "openai";
 import { manageGPT4Session, manageCodingSessions } from './sessionManager';
 import { customVocalSynthesis } from './customVocal';
+import { Configuration, OpenAIApi, Audio } from "openai";
+import { manageGPT4Session, manageCodingSessions } from './sessionManager';
+import { customVocalSynthesis } from './customVocal';
 
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
@@ -38,11 +45,13 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 const transcribeAudio = async (audioBuffer, useCustomModel = false) => {
+const transcribeAudio = async (audioBuffer, useCustomModel = false) => {
     const audio = { content: audioBuffer.toString('base64') };
     const config = {
         encoding: 'LINEAR16',
         sampleRateHertz: 16000,
         languageCode: 'en-US',
+        model: useCustomModel ? 'custom-vocal-model' : 'default',
         model: useCustomModel ? 'custom-vocal-model' : 'default',
         model: useCustomModel ? 'custom-vocal-model' : 'default',
     };
@@ -55,6 +64,17 @@ const transcribeAudio = async (audioBuffer, useCustomModel = false) => {
         .map(result => result.alternatives[0].transcript)
         .join('\n');
     return transcription;
+};
+
+const synthesizeSpeech = async (text, useCustomVoice = false) => {
+    const voiceConfig = useCustomVoice ? customVocalSynthesis(text) : {
+        voice: 'en-US-JennyNeural',
+    };
+    the audioConfig = AudioConfig.fromAudioFileOutput("path/to/audio.wav");
+    the synthesizer = new SpeechSynthesizer(voiceConfig, audioConfig);
+    the result = await synthesizer.speakTextAsync(text);
+    synthesizer.close();
+    return result.audioData;
 };
 
 const synthesizeSpeech = async (text, useCustomVoice = false) => {
@@ -85,12 +105,16 @@ const { manageGPT4Session } = require('./sessionManager');
 import { Configuration, OpenAIApi, Audio } from "openai";
 import { manageGPT4Session, manageCodingSessions } from './sessionManager';
 import { customVocalSynthesis } from './customVocal';
+import { Configuration, OpenAIApi, Audio } from "openai";
+import { manageGPT4Session, manageCodingSessions } from './sessionManager';
+import { customVocalSynthesis } from './customVocal';
 
 const configuration = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 
+const transcribeAudio = async (audioBuffer, useCustomModel = false) => {
 const interactWithGPT4 = async (text, sessionConfig) => {
     try {
         const response = await openai.createCompletion({
