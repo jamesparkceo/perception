@@ -55,17 +55,12 @@ const interactWithGPT4 = async (text) => {
 };
 
 module.exports = { handleVoiceCommand, transcribeAudio, interactWithGPT4 };
-const textToSpeech = require('@google-cloud/text-to-speech');
-const ttsClient = new textToSpeech.TextToSpeechClient();
-
+// Placeholder for Azure Cognitive Services integration
+// This will be implemented once the custom voice model is ready
 const synthesizeSpeech = async (text) => {
-    const request = {
-        input: {text: text},
-        voice: {languageCode: 'en-US', ssmlGender: 'NEUTRAL'},
-        audioConfig: {audioEncoding: 'MP3'},
-    };
-    const [response] = await ttsClient.synthesizeSpeech(request);
-    return response.audioContent;
+    // Implementation for Azure TTS will go here
+    return "This function will synthesize speech using Azure Cognitive Services.";
 };
 
+module.exports = { handleVoiceCommand, transcribeAudio, interactWithGPT4, synthesizeSpeech };
 module.exports = { handleVoiceCommand, transcribeAudio, interactWithGPT4, synthesizeSpeech };
